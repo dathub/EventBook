@@ -2,9 +2,12 @@ package com.dtcode.eventbook.web.controller;
 
 
 import com.dtcode.eventbook.service.EventBookItemService;
+import com.dtcode.eventbook.utils.EventBookUtils;
 import com.dtcode.eventbook.web.model.EventBookItemDTO;
 import com.dtcode.eventbook.web.model.EventBookItemDtoPage;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +17,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.dtcode.eventbook.utils.EventBookUtils.isValidDate;
+import static com.dtcode.eventbook.utils.EventBookUtils.isValidYear;
 
 @Slf4j
 @RequestMapping("/api/v1")
@@ -28,9 +35,12 @@ public class EventBookController {
 
     @GetMapping(path = {"events"}, produces = { "application/json" })
     public ResponseEntity<EventBookItemDtoPage> listEventBookItems(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
-                                                               @RequestParam(value = "pageSize", required = false) Integer pageSize){
+                                                               @RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                                                   @RequestParam(value = "date", required = false) String date) {
 
-        if (pageNumber == null || pageNumber < 0){
+        EventBookItemDtoPage eventBookItemDtoPage = null;
+
+        if (pageNumber == null || pageNumber < 0) {
             pageNumber = DEFAULT_PAGE_NUMBER;
         }
 
@@ -38,7 +48,8 @@ public class EventBookController {
             pageSize = DEFAULT_PAGE_SIZE;
         }
 
-        EventBookItemDtoPage eventBookItemDtoPage = eventBookItemService.findAllEventBookItems(PageRequest.of(pageNumber, pageSize));
+        eventBookItemDtoPage = eventBookItemService.findAllEventBookItems(PageRequest.of(pageNumber, pageSize), date);
+
         return new ResponseEntity<>(eventBookItemDtoPage, HttpStatus.OK);
     }
 
@@ -80,5 +91,11 @@ public class EventBookController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEventBookItem(@PathVariable("eventId") Long eventId){
         eventBookItemService.deleteById(eventId);
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ResponseEntity<String> badReqeustHandler(ValidationException e){
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }

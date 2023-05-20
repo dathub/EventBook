@@ -30,5 +30,6 @@ public class EventBookItem {
 
     private String description;
 
+    @Temporal(TemporalType.DATE)
     private LocalDate date;
 }
