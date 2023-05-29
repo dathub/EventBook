@@ -2,13 +2,10 @@ package com.dtcode.eventbook.web.controller;
 
 
 import com.dtcode.eventbook.service.EventBookItemService;
-import com.dtcode.eventbook.utils.EventBookUtils;
 import com.dtcode.eventbook.web.model.EventBookItemDTO;
 import com.dtcode.eventbook.web.model.EventBookItemDtoPage;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -17,11 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.dtcode.eventbook.utils.EventBookUtils.isValidDate;
-import static com.dtcode.eventbook.utils.EventBookUtils.isValidYear;
 
 @Slf4j
 @RequestMapping("/api/v1")
