@@ -3,12 +3,14 @@ package com.dtcode.eventbook.service.impl;
 import com.dtcode.eventbook.domain.security.AppUser;
 import com.dtcode.eventbook.domain.EventBookItem;
 import com.dtcode.eventbook.repository.security.AppUserRepository;
+import com.dtcode.eventbook.service.EventBookService;
 import com.dtcode.eventbook.utils.EventBookUtils;
+import com.dtcode.eventbook.web.model.AppUserDTO;
 import com.dtcode.eventbook.web.model.EventBookItemDTO;
 import com.dtcode.eventbook.web.model.EventBookItemDtoPage;
+import com.dtcode.eventbook.web.model.dtomapper.AppUserMapper;
 import com.dtcode.eventbook.web.model.dtomapper.EventBookItemMapper;
 import com.dtcode.eventbook.repository.EventBookItemRepository;
-import com.dtcode.eventbook.service.EventBookItemService;
 import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -29,21 +31,21 @@ import static com.dtcode.eventbook.utils.EventBookUtils.isValidYear;
 
 @Service
 @AllArgsConstructor
-public class EventBookItemServiceImpl implements EventBookItemService {
+public class EventBookServiceImpl implements EventBookService {
 
     private final AppUserRepository appUserRepository;
     private final EventBookItemRepository eventBookItemRepository;
     private final EventBookItemMapper eventBookItemMapper;
 
     @Override
-    public EventBookItemDTO saveEventBookItem(EventBookItemDTO eventBookItemDTO) {
+    public EventBookItemDTO saveEventBookItemForCurrentUser(EventBookItemDTO eventBookItemDTO) {
         EventBookItem eventBookItem = eventBookItemMapper.dtoToEventBookItem(eventBookItemDTO, getLoggedInUser());
         EventBookItem savedEventBookItem = eventBookItemRepository.save(eventBookItem);
         return eventBookItemMapper.eventBookItemToDto(savedEventBookItem);
     }
 
     @Override
-    public void updateEventBookItem(Long eventBookItemId, EventBookItemDTO eventBookItemDTO) {
+    public void updateEventBookItemForCurrentUser(Long eventBookItemId, EventBookItemDTO eventBookItemDTO) {
         Optional<EventBookItem> eventBookItem = eventBookItemRepository.findById(eventBookItemId);
         eventBookItem.ifPresentOrElse( item -> {
             item.setTitle(eventBookItemDTO.getTitle());
@@ -56,12 +58,12 @@ public class EventBookItemServiceImpl implements EventBookItemService {
     }
 
     @Override
-    public void deleteById(Long eventBookItemId) {
+    public void deleteEventBookItemByIdForCurrentUser(Long eventBookItemId) {
         eventBookItemRepository.deleteById(eventBookItemId);
     }
 
     @Override
-    public EventBookItemDTO findEventBookItemById(Long eventBookItemId) {
+    public EventBookItemDTO findEventBookItemByIdForCurrentUser(Long eventBookItemId) {
         Optional<EventBookItem> eventBookItem = eventBookItemRepository.findById(eventBookItemId);
         if(eventBookItem.isPresent()) {
             return eventBookItemMapper.eventBookItemToDto(eventBookItem.get());
@@ -71,9 +73,9 @@ public class EventBookItemServiceImpl implements EventBookItemService {
     }
 
     @Override
-    public EventBookItemDtoPage findAllEventBookItems(PageRequest pageRequest, String date) throws ValidationException {
+    public EventBookItemDtoPage findEventBookItemsForCurrentUser(PageRequest pageRequest, String date) {
 
-        Page<EventBookItem> eventBookItemPage = null;
+        Page<EventBookItem> eventBookItemPage;
 
         if (date == null) {
             eventBookItemPage = eventBookItemRepository.findAllByAppUser(getLoggedInUser(), pageRequest);
@@ -88,6 +90,41 @@ public class EventBookItemServiceImpl implements EventBookItemService {
         }
 
         return getEventBookItemDtoPage(eventBookItemPage);
+    }
+
+    @Override
+    public EventBookItemDtoPage findEventBookItemsForAllUsers(PageRequest pageRequest, String date) {
+        Page<EventBookItem> eventBookItemPage = null;
+
+        if (date == null) {
+            eventBookItemPage = eventBookItemRepository.findAll(pageRequest);
+        } else if (isValidDate(date)) {
+            eventBookItemPage = eventBookItemRepository.findAllByDate(EventBookUtils.getDate(date), pageRequest);
+        } else if (isValidYear(date)) {
+            LocalDate dateStart = EventBookUtils.getDate(date + "-01-01");
+            LocalDate dateEnd = EventBookUtils.getDate(date + "-12-31");
+            eventBookItemPage = eventBookItemRepository.findAllByDateBetween(dateStart, dateEnd, pageRequest);
+        } else {
+            throw new ValidationException("Incorrect date format: " + date + ". Expected date format is " + EventBookUtils.DefaultDateFormat + " or yyyy");
+        }
+
+        return getEventBookItemDtoPage(eventBookItemPage);
+    }
+
+    @Override
+    public AppUserDTO addAppUser(AppUserDTO appUserDTO) {
+//        not implemented
+        return null;
+    }
+
+    @Override
+    public void updateAppUser(Long userId, AppUserDTO appUserDTO) {
+//        not implemented
+    }
+
+    @Override
+    public void deleteAppUser(Long userId) {
+//        not implemented
     }
 
     private EventBookItemDtoPage getEventBookItemDtoPage(Page<EventBookItem> eventBookItemPage) {
@@ -105,7 +142,7 @@ public class EventBookItemServiceImpl implements EventBookItemService {
 
     private AppUser getLoggedInUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User)(authentication.getPrincipal());
+        AppUser user = (AppUser)(authentication.getPrincipal());
         Optional<AppUser> appUser = appUserRepository.findByUserName(user.getUsername());
         if(appUser.isPresent()) {
             return appUser.get();

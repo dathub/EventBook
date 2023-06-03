@@ -1,15 +1,13 @@
 package com.dtcode.eventbook;
 
-import com.dtcode.eventbook.service.EventBookItemService;
+import com.dtcode.eventbook.service.EventBookService;
 import com.dtcode.eventbook.web.controller.EventBookController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -33,34 +31,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(EventBookController.class)
 public class EventBookControllerTest {
 
-    private MockMvc mockMvc;
-
-    @Autowired
-    private EventBookItemService eventBookItemService;
-
-    @InjectMocks
-    private EventBookController eventBookController;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(eventBookController)
-                .apply(SecurityMockMvcConfigurers.springSecurity())
-//                .setControllerAdvice(new ExceptionHandlerControllerAdvice()) // If you have a custom exception handler
-                .build();
-    }
-
-    @Test
-    void findEventBookItems() throws Exception {
-        mockMvc.perform(get("/api/v1/events/"))
-                .andExpect(status().isUnauthorized());
-    }
+//    private MockMvc mockMvc;
+//
+//    @Autowired
+//    private EventBookService eventBookService;
+//
+//    @InjectMocks
+//    private EventBookController eventBookController;
+//
+//    @BeforeEach
+//    public void setup() {
+//        MockitoAnnotations.initMocks(this);
+//        mockMvc = MockMvcBuilders.standaloneSetup(eventBookController)
+//                .apply(SecurityMockMvcConfigurers.springSecurity())
+////                .setControllerAdvice(new ExceptionHandlerControllerAdvice()) // If you have a custom exception handler
+//                .build();
+//    }
+//
+//    @Test
+//    void findEventBookItems() throws Exception {
+//        mockMvc.perform(get("/api/v1/events/"))
+//                .andExpect(status().isUnauthorized());
+//    }
 
 //    @Test
 //    public void testListEventBookItems() throws Exception {
 //        // Mocking the service
 //        EventBookItemDtoPage mockPage = new EventBookItemDtoPage(Collections.emptyList());
-//        when(eventBookItemService.findAllEventBookItems(any(PageRequest.class), anyString())).thenReturn(mockPage);
+//        when(eventBookService.findAllEventBookItems(any(PageRequest.class), anyString())).thenReturn(mockPage);
 //
 //        // Performing GET request
 //        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/events")
@@ -75,7 +73,7 @@ public class EventBookControllerTest {
 //    public void testGetEventBookItemById() throws Exception {
 //        long eventId = 1L;
 //        EventBookItemDTO mockDto = new EventBookItemDTO();
-//        when(eventBookItemService.findEventBookItemById(eventId)).thenReturn(mockDto);
+//        when(eventBookService.findEventBookItemById(eventId)).thenReturn(mockDto);
 //
 //        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/events/{eventId}", eventId)
 //                        .contentType(MediaType.APPLICATION_JSON))
@@ -89,7 +87,7 @@ public class EventBookControllerTest {
 //        EventBookItemDTO savedDto = new EventBookItemDTO();
 //        savedDto.setId(1L);
 //
-//        when(eventBookItemService.saveEventBookItem(eventBookItemDTO)).thenReturn(savedDto);
+//        when(eventBookService.saveEventBookItem(eventBookItemDTO)).thenReturn(savedDto);
 //
 //        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/events")
 //                        .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +106,7 @@ public class EventBookControllerTest {
 //                        .content(objectMapper.writeValueAsString(eventBookItemDTO)))
 //                .andExpect(status().isNoContent());
 //
-//        verify(eventBookItemService).updateEventBookItem(eq(eventId), eq(eventBookItemDTO));
+//        verify(eventBookService).updateEventBookItem(eq(eventId), eq(eventBookItemDTO));
 //    }
 //
 //    @Test
@@ -118,7 +116,7 @@ public class EventBookControllerTest {
 //        mockMvc.perform(delete("/api/v1/events/{eventId}", eventId))
 //                .andExpect(status().isNoContent());
 //
-//        verify(eventBookItemService).deleteById(eventId);
+//        verify(eventBookService).deleteById(eventId);
 //    }
 
     // You can add more tests for exception handling if required

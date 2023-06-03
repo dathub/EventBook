@@ -39,6 +39,7 @@ public class UserDataLoader implements CommandLineRunner {
         Authority readEventBookItem = authorityRepository.save(Authority.builder().permission("eventbookitem.read").build());
         Authority updateEventBookItem = authorityRepository.save(Authority.builder().permission("eventbookitem.update").build());
         Authority deleteEventBookItem = authorityRepository.save(Authority.builder().permission("eventbookitem.delete").build());
+        Authority readAllEventBookItem = authorityRepository.save(Authority.builder().permission("eventbookitem.readall").build());
 
         Authority createAppUser = authorityRepository.save(Authority.builder().permission("appuser.create").build());
         Authority readAppUser = authorityRepository.save(Authority.builder().permission("appuser.read").build());
@@ -50,7 +51,7 @@ public class UserDataLoader implements CommandLineRunner {
         Role userRole = roleRepository.save(Role.builder().name("USER").build());
 
         adminRole.setAuthorities(new HashSet<>(Set.of(createEventBookItem, readEventBookItem, updateEventBookItem, deleteEventBookItem,
-                createAppUser, readAppUser, updateAppUser, deleteAppUser)));
+                readAllEventBookItem, createAppUser, readAppUser, updateAppUser, deleteAppUser)));
         userRole.setAuthorities(new HashSet<>(Set.of(createEventBookItem, readEventBookItem, updateEventBookItem, deleteEventBookItem)));
 
         roleRepository.saveAll(Arrays.asList(adminRole, userRole));

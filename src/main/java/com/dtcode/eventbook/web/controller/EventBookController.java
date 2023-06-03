@@ -1,7 +1,8 @@
 package com.dtcode.eventbook.web.controller;
 
 
-import com.dtcode.eventbook.service.EventBookItemService;
+import com.dtcode.eventbook.domain.security.permission.*;
+import com.dtcode.eventbook.service.EventBookService;
 import com.dtcode.eventbook.web.model.EventBookItemDTO;
 import com.dtcode.eventbook.web.model.EventBookItemDtoPage;
 import jakarta.validation.Valid;
@@ -23,12 +24,14 @@ public class EventBookController {
 
     private static final Integer DEFAULT_PAGE_NUMBER = 0;
     private static final Integer DEFAULT_PAGE_SIZE = 25;
-    private final EventBookItemService eventBookItemService;
+    private final EventBookService eventBookService;
 
+    //Requires ADMIN or USER roles
+    @EventBookItemReadPermission
     @GetMapping(path = {"events"}, produces = { "application/json" })
     public ResponseEntity<EventBookItemDtoPage> listEventBookItems(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
-                                                               @RequestParam(value = "pageSize", required = false) Integer pageSize,
-                                                                   @RequestParam(value = "date", required = false) String date) {
+                                                                         @RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                                                         @RequestParam(value = "date", required = false) String date) {
 
         EventBookItemDtoPage eventBookItemDtoPage = null;
 
@@ -40,26 +43,28 @@ public class EventBookController {
             pageSize = DEFAULT_PAGE_SIZE;
         }
 
-        eventBookItemDtoPage = eventBookItemService.findAllEventBookItems(PageRequest.of(pageNumber, pageSize), date);
-
+        eventBookItemDtoPage = eventBookService.findEventBookItemsForCurrentUser(PageRequest.of(pageNumber, pageSize), date);
         return new ResponseEntity<>(eventBookItemDtoPage, HttpStatus.OK);
     }
 
 
+    //Requires ADMIN or USER roles
+    @EventBookItemReadPermission
     @GetMapping(path = {"events/{eventId}"}, produces = { "application/json" })
     public ResponseEntity<EventBookItemDTO> getEventBookItemById(@PathVariable("eventId") Long eventId){
 
         log.debug("Get Request for EventId: " + eventId);
-
-        EventBookItemDTO eventBookItemDto = eventBookItemService.findEventBookItemById(eventId);
+        EventBookItemDTO eventBookItemDto = eventBookService.findEventBookItemByIdForCurrentUser(eventId);
         return new ResponseEntity<>(eventBookItemDto, HttpStatus.OK);
     }
 
+    //Requires ADMIN or USER roles
     //Add event
+    @EventBookItemCreatePermission
     @PostMapping(path = "events")
     public ResponseEntity saveNewEventBookItem(@Valid @RequestBody EventBookItemDTO eventBookItemDTO){
 
-        EventBookItemDTO savedDto = eventBookItemService.saveEventBookItem(eventBookItemDTO);
+        EventBookItemDTO savedDto = eventBookService.saveEventBookItemForCurrentUser(eventBookItemDTO);
 
         HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -70,19 +75,45 @@ public class EventBookController {
     }
 
     //Update event
+    //Requires ADMIN or USER roles
+    @EventBookItemUpdatePermission
     @PutMapping(path = {"events/{eventId}"}, produces = { "application/json" })
     public ResponseEntity updateEventBookItem(@PathVariable("eventId") Long eventId, @Valid @RequestBody EventBookItemDTO eventBookItemDTO){
 
-        eventBookItemService.updateEventBookItem(eventId, eventBookItemDTO);
+        eventBookService.updateEventBookItemForCurrentUser(eventId, eventBookItemDTO);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     //delete event
+    //Requires ADMIN or USER roles
+    @EventBookItemDeletePermission
     @DeleteMapping({"events/{eventId}"})
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEventBookItem(@PathVariable("eventId") Long eventId){
-        eventBookItemService.deleteById(eventId);
+        eventBookService.deleteEventBookItemByIdForCurrentUser(eventId);
+    }
+
+    //Requires ADMIN role
+    @EventBookItemReadAllPermission
+    @GetMapping(path = {"events/all"}, produces = { "application/json" })
+    public ResponseEntity<EventBookItemDtoPage> listAllEventBookItems(@RequestParam(value = "pageNumber", required = false) Integer pageNumber,
+                                                                      @RequestParam(value = "pageSize", required = false) Integer pageSize,
+                                                                      @RequestParam(value = "userName", required = false) String userName,
+                                                                      @RequestParam(value = "date", required = false) String date) {
+
+        EventBookItemDtoPage eventBookItemDtoPage = null;
+
+        if (pageNumber == null || pageNumber < 0) {
+            pageNumber = DEFAULT_PAGE_NUMBER;
+        }
+
+        if (pageSize == null || pageSize < 1) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+
+        eventBookItemDtoPage = eventBookService.findEventBookItemsForAllUsers(PageRequest.of(pageNumber, pageSize), date);
+        return new ResponseEntity<>(eventBookItemDtoPage, HttpStatus.OK);
     }
 
     @ExceptionHandler(ValidationException.class)

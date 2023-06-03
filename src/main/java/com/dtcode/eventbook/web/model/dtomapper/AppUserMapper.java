@@ -16,4 +16,7 @@ public interface AppUserMapper {
 
     @Mapping(source = "eventBookItems", target = "eventBookItems")
     AppUserDTO appUserToDto(AppUser appUser, List<EventBookItem> eventBookItems);
+
+
+    AppUser dtoToAppUser(AppUserDTO appUserDTO);
 }

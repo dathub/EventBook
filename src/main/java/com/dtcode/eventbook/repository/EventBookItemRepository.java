@@ -26,5 +26,11 @@ public interface EventBookItemRepository extends JpaRepository<EventBookItem, Lo
     Page<EventBookItem> findAllByAppUserAndDateBetween(@Param("user") AppUser user,
                                                    @Param("startDate") LocalDate startDate,
                                                    @Param("endDate") LocalDate endDate, Pageable pageable);
-    //Query by date, year, year and month
+
+    Page<EventBookItem> findAllByDate(LocalDate date, Pageable pageable);
+
+    @Query("SELECT e FROM EventBookItem e WHERE e.date BETWEEN :startDate AND :endDate")
+    Page<EventBookItem> findAllByDateBetween(@Param("startDate") LocalDate startDate,
+                                             @Param("endDate") LocalDate endDate, Pageable pageable);
+
 }

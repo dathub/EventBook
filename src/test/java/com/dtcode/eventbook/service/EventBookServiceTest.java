@@ -3,7 +3,7 @@ package com.dtcode.eventbook.service;
 import com.dtcode.eventbook.domain.EventBookItem;
 import com.dtcode.eventbook.repository.EventBookItemRepository;
 import com.dtcode.eventbook.repository.security.AppUserRepository;
-import com.dtcode.eventbook.service.impl.EventBookItemServiceImpl;
+import com.dtcode.eventbook.service.impl.EventBookServiceImpl;
 import com.dtcode.eventbook.web.model.EventBookItemDTO;
 import com.dtcode.eventbook.web.model.dtomapper.EventBookItemMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,12 +18,12 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class EventBookItemServiceTest {
+public class EventBookServiceTest {
 
     @Mock
     private AppUserRepository appUserRepository;
@@ -31,12 +31,12 @@ public class EventBookItemServiceTest {
     private EventBookItemRepository eventBookItemRepository;
     @Mock
     private EventBookItemMapper eventBookItemMapper;
-    private EventBookItemService underTestEventBookItemService;
+    private EventBookService underTestEventBookService;
 
     @BeforeEach
     void setUp() {
-        underTestEventBookItemService
-                = new EventBookItemServiceImpl(appUserRepository, eventBookItemRepository, eventBookItemMapper);
+        underTestEventBookService
+                = new EventBookServiceImpl(appUserRepository, eventBookItemRepository, eventBookItemMapper);
     }
 
 
@@ -48,7 +48,7 @@ public class EventBookItemServiceTest {
 
     @Test
     void deleteByIdTest() {
-        underTestEventBookItemService.deleteById(1l);
+        underTestEventBookService.deleteEventBookItemByIdForCurrentUser(1l);
         verify(eventBookItemRepository).deleteById(1l);
     }
 
@@ -61,10 +61,10 @@ public class EventBookItemServiceTest {
         //given
         long itemId = 1l;
         EventBookItem eventBookItem = EventBookItem.builder().id(itemId).build();
-        when(eventBookItemRepository.findById(itemId)).thenReturn(Optional.ofNullable(eventBookItem));
+        when(eventBookItemRepository.findById(anyLong())).thenReturn(Optional.ofNullable(eventBookItem));
         when(eventBookItemMapper.eventBookItemToDto(eventBookItem)).thenReturn(EventBookItemDTO.builder().build());
         //when
-        underTestEventBookItemService.findEventBookItemById(itemId);
+        underTestEventBookService.findEventBookItemByIdForCurrentUser(itemId);
         //then
         ArgumentCaptor<Long> argumentCaptor = ArgumentCaptor.forClass(Long.class);
         Mockito.verify(eventBookItemRepository).findById(argumentCaptor.capture());
@@ -77,11 +77,13 @@ public class EventBookItemServiceTest {
     void findEventBookItemByIdWhenItemIdNotexistsTest() {
         //given
         long itemId = 1l;
-        given(eventBookItemRepository.findById(itemId)).willReturn(Optional.ofNullable(null));
+        given(eventBookItemRepository.findById(anyLong())).willReturn(Optional.ofNullable(null));
         //when
         //then
-        assertThatThrownBy(() -> underTestEventBookItemService.findEventBookItemById(itemId))
+        assertThatThrownBy(() -> underTestEventBookService.findEventBookItemByIdForCurrentUser(itemId))
                 .isInstanceOf(ResponseStatusException.class).hasMessageContaining("Not Found. Event Id: " + itemId);
+
+//        verify(eventBookItemRepository, never()).findById(any());
     }
 
 

@@ -14,7 +14,6 @@ public interface EventBookItemMapper {
     EventBookItemMapper INSTANCE = Mappers.getMapper(EventBookItemMapper.class);
 
     @Mapping(source = "eventBookItem.id", target = "id")
-    @Mapping(source = "eventBookItem.appUser.userName", target = "userName")
     EventBookItemDTO eventBookItemToDto(EventBookItem eventBookItem);
 
     @Mapping(source = "appUser", target = "appUser")
