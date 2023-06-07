@@ -3,6 +3,8 @@ package com.dtcode.eventbook;
 import com.dtcode.eventbook.service.EventBookService;
 import com.dtcode.eventbook.web.controller.EventBookController;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -48,15 +50,11 @@ public class EventBookControllerTest {
         return Stream.of(Arguments.of("TestAdmin" , "ad123"));
     }
 
-    public static Stream<Arguments> getStreamAllUsers() {
-        return Stream.of(Arguments.of("spring" , "guru"),
-                Arguments.of("scott", "tiger"),
-                Arguments.of("user", "password"));
+    public static Stream<Arguments> getStreamNonAdminUser() {
+        return Stream.of(Arguments.of("TestUser", "us123"));
     }
-
-    public static Stream<Arguments> getStreamNotAdmin() {
-        return Stream.of(Arguments.of("scott", "tiger"),
-                Arguments.of("user", "password"));
+    public static Stream<Arguments> getStreamUnknownUser() {
+        return Stream.of(Arguments.of("scott", "tiger"));
     }
 
     @BeforeEach
@@ -67,83 +65,34 @@ public class EventBookControllerTest {
                 .build();
     }
 
-    @Test
-    void findEventBookItems() throws Exception {
-        mockMvc.perform(get("/api/v1/events"))
-                .andExpect(status().isUnauthorized());
+    @DisplayName("Find event book items tests")
+    @Nested
+    class findEventBookItems {
+        @Test
+        void findEventBookItems() throws Exception {
+            mockMvc.perform(get("/api/v1/events"))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @ParameterizedTest(name = "#{index} with [{arguments}]")
+        @MethodSource("com.dtcode.eventbook.EventBookControllerTest#getStreamAdminUser")
+        void findEventBookItemsWithAdminUser(String user, String pwd) throws Exception {
+            mockMvc.perform(get("/api/v1/events").with(httpBasic(user, pwd)))
+                    .andExpect(status().isOk());
+        }
+
+        @ParameterizedTest(name = "#{index} with [{arguments}]")
+        @MethodSource("com.dtcode.eventbook.EventBookControllerTest#getStreamNonAdminUser")
+        void findEventBookItemsWithNonAdminUser(String user, String pwd) throws Exception {
+            mockMvc.perform(get("/api/v1/events").with(httpBasic(user, pwd)))
+                    .andExpect(status().isOk());
+        }
+
+        @ParameterizedTest(name = "#{index} with [{arguments}]")
+        @MethodSource("com.dtcode.eventbook.EventBookControllerTest#getStreamUnknownUser")
+        void findEventBookItemsWithUnkonwnUser(String user, String pwd) throws Exception {
+            mockMvc.perform(get("/api/v1/events").with(httpBasic(user, pwd)))
+                    .andExpect(status().isUnauthorized());
+        }
     }
-
-    @ParameterizedTest(name = "#{index} with [{arguments}]")
-    @MethodSource("com.dtcode.eventbook.EventBookControllerTest#getStreamAdminUser")
-    void findEventBookItemsAUTH(String user, String pwd) throws Exception {
-        mockMvc.perform(get("/api/v1/events").with(httpBasic(user, pwd)))
-                .andExpect(status().isOk());
-    }
-
-//    @Test
-//    public void testListEventBookItems() throws Exception {
-//        // Mocking the service
-//        EventBookItemDtoPage mockPage = new EventBookItemDtoPage(Collections.emptyList());
-//        when(eventBookService.findAllEventBookItems(any(PageRequest.class), anyString())).thenReturn(mockPage);
-//
-//        // Performing GET request
-//        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/events")
-//                        .param("pageNumber", "0")
-//                        .param("pageSize", "25")
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.content").isArray());
-//    }
-//
-//    @Test
-//    public void testGetEventBookItemById() throws Exception {
-//        long eventId = 1L;
-//        EventBookItemDTO mockDto = new EventBookItemDTO();
-//        when(eventBookService.findEventBookItemById(eventId)).thenReturn(mockDto);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/events/{eventId}", eventId)
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(eventId));
-//    }
-//
-//    @Test
-//    public void testSaveNewEventBookItem() throws Exception {
-//        EventBookItemDTO eventBookItemDTO = new EventBookItemDTO();
-//        EventBookItemDTO savedDto = new EventBookItemDTO();
-//        savedDto.setId(1L);
-//
-//        when(eventBookService.saveEventBookItem(eventBookItemDTO)).thenReturn(savedDto);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/events")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(eventBookItemDTO)))
-//                .andExpect(status().isCreated())
-//                .andExpect(header().string("Location", "localhost:8080/api/v1/events/1"));
-//    }
-//
-//    @Test
-//    public void testUpdateEventBookItem() throws Exception {
-//        long eventId = 1L;
-//        EventBookItemDTO eventBookItemDTO = new EventBookItemDTO();
-//
-//        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/events/{eventId}", eventId)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(eventBookItemDTO)))
-//                .andExpect(status().isNoContent());
-//
-//        verify(eventBookService).updateEventBookItem(eq(eventId), eq(eventBookItemDTO));
-//    }
-//
-//    @Test
-//    public void testDeleteEventBookItem() throws Exception {
-//        long eventId = 1L;
-//
-//        mockMvc.perform(delete("/api/v1/events/{eventId}", eventId))
-//                .andExpect(status().isNoContent());
-//
-//        verify(eventBookService).deleteById(eventId);
-//    }
-
-    // You can add more tests for exception handling if required
 }
